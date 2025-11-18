@@ -405,19 +405,13 @@
                                 <div class="col-8">
                                     <div class="card-body">
                                         <h6 class="card-title">{{ reserva.produto.nome }}</h6>
-                                        <p class="mb-1">
-                                            <i class="bi bi-person-fill"></i>
-                                            <strong>{{ reserva.nomeCliente }}</strong>
+                                        <p class="mb-2">
+                                            <i class="bi bi-check-circle-fill text-success"></i>
+                                            <strong>Já Reservado</strong>
                                         </p>
-                                        <p class="mb-2 small text-muted">
-                                            <i class="bi bi-telephone-fill"></i> {{ reserva.telefone }}
+                                        <p class="small text-muted">
+                                            <i class="bi bi-info-circle"></i> Este item já foi escolhido por alguém
                                         </p>
-
-                                        <!-- Botão de cancelar -->
-                                        <button @click="confirmarCancelamento(reserva)"
-                                            class="btn btn-cancelar btn-sm w-100">
-                                            <i class="bi bi-x-circle"></i> Cancelar Reserva
-                                        </button>
                                     </div>
                                 </div>
                             </div>
