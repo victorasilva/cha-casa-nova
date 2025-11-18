@@ -1,0 +1,14 @@
+# Arquivos de deploy com credenciais
+deploy.ps1
+deploy-novo.ps1
+
+# Configurações locais
+.env
+.env.local
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

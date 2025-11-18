@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --cor-primaria: #a8d5ba;
+            --cor-secundaria: #f4c2c2;
+            --cor-terciaria: #fef5e7;
+            --cor-texto: #5a5a5a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--cor-terciaria) 0%, #fff9e6 100%);
+            min-height: 100vh;
+            color: var(--cor-texto);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--cor-primaria) 0%, #8bc9a3 100%);
+            color: white;
+            padding: 3rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        /* Contadores */
+        .contador-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-contador {
+            font-size: 1rem;
+            padding: 0.6rem 1.2rem;
+            margin: 0.3rem;
+        }
+
+        /* Cards de Produtos */
+        .product-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .product-card img {
+            height: 250px;
+            object-fit: contain;
+            width: 75%;
+            display: block;
+            margin: 15px auto 0 auto;
+        }
+
+        .product-card .card-body {
+            padding: 1.5rem;
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card .card-title {
+            margin-bottom: 0.75rem;
+        }
+
+        .product-card .card-text {
+            margin-bottom: 1rem;
+            flex-grow: 1;
+        }
+
+        .product-card .btn-presentear {
+            background: linear-gradient(135deg, var(--cor-primaria) 0%, #8bc9a3 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.7rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .product-card .btn-presentear:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Cards de Reservados */
+        .reserved-card {
+            background: #f8f9fa;
+            border-left: 4px solid var(--cor-secundaria);
+        }
+
+        .reserved-card img {
+            height: 150px;
+        }
+
+        .timer-badge {
+            background: #dc3545;
+            color: white;
+            font-weight: 700;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .btn-cancelar {
+            background-color: #dc3545;
+            border: none;
+            color: white;
+        }
+
+        .btn-cancelar:hover {
+            background-color: #c82333;
+        }
+
+        .btn-cancelar:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        /* Modal */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--cor-primaria) 0%, #8bc9a3 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+
+        /* Toast */
+        .toast-container {
+            z-index: 9999;
+        }
+
+        .toast {
+            border-radius: 10px;
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, var(--cor-primaria) 0%, #8bc9a3 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        /* Seção PIX */
+        .pix-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 3rem 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--cor-secundaria);
+        }
+
+        .pix-key {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            border: 2px dashed var(--cor-primaria);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pix-key:hover {
+            background: #e9ecef;
+            border-color: #8bc9a3;
+        }
+
+        /* Admin Button */
+        .admin-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #6c757d;
+            color: white;
+            border: none;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .admin-btn:hover {
+            opacity: 1;
+        }
+
+        /* Animações de entrada */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsividade adicional */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .product-card img {
+                height: 200px;
+            }
+        }
+
+        .section-title {
+            color: var(--cor-primaria);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: var(--cor-secundaria);
+        }
+
+        /* Botão PIX no Header */
+        .btn-pix-header {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .btn-pix-header:hover {
+            background: white;
+            color: var(--cor-primaria);
+            transform: scale(1.05);
+        }
+
+        /* Barra de Progresso */
+        .progress-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress {
+            height: 30px;
+            border-radius: 15px;
+            background-color: #e9ecef;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--cor-primaria) 0%, #8bc9a3 100%);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: width 0.6s ease;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="container text-center">
+                <h1><i class="bi bi-house-heart"></i> Chá de Casa Nova</h1>
+                <button @click="abrirModalPix" class="btn btn-pix-header">
+                    <i class="bi bi-piggy-bank"></i> Contribuição Opcional via PIX
+                </button>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Barra de Progresso -->
+            <div class="progress-section fade-in">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">
+                        <i class="bi bi-bar-chart-fill"></i> Progresso do Chá
+                    </h6>
+                    <span class="badge bg-primary">{{ percentualReservado }}% completo</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" :style="{ width: percentualReservado + '%' }"
+                        :aria-valuenow="percentualReservado" aria-valuemin="0" aria-valuemax="100">
+                        {{ produtosReservados.length }} de {{ todosProdutos.length }} itens
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contadores -->
+            <div class="contador-section text-center fade-in">
+                <h5 class="mb-3"><i class="bi bi-graph-up"></i> Status do Chá</h5>
+                <span class="badge bg-success badge-contador">
+                    <i class="bi bi-bag-check"></i> Disponíveis: {{ produtosDisponiveis.length }}
+                </span>
+                <span class="badge bg-warning text-dark badge-contador">
+                    <i class="bi bi-gift"></i> Reservados: {{ produtosReservados.length }}
+                </span>
+            </div>
+
+            <!-- Catálogo de Produtos Disponíveis -->
+            <section v-if="produtosDisponiveis.length > 0" class="mb-5">
+                <h2 class="section-title"><i class="bi bi-cart3"></i> Escolha seu Presente</h2>
+                <div class="row g-4">
+                    <div v-for="produto in produtosDisponiveis" :key="produto.id"
+                        class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                        <div class="card product-card fade-in">
+                            <img :src="produto.imagem" :alt="produto.nome" class="card-img-top">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ produto.nome }}</h5>
+                                <p class="card-text text-muted">{{ produto.descricao }}</p>
+                                <button @click="abrirModal(produto)" class="btn btn-presentear w-100">
+                                    <i class="bi bi-gift-fill"></i> Presentear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mensagem quando todos produtos foram reservados -->
+            <div v-else class="alert alert-success text-center fade-in" role="alert">
+                <h4><i class="bi bi-emoji-heart-eyes"></i> Todos os itens foram reservados!</h4>
+                <p class="mb-0">Muito obrigado a todos que contribuíram!</p>
+            </div>
+
+            <!-- Produtos Reservados -->
+            <section v-if="produtosReservados.length > 0" class="mb-5">
+                <h2 class="section-title"><i class="bi bi-heart-fill"></i> Itens já Reservados</h2>
+                <div class="row g-3">
+                    <div v-for="reserva in produtosReservados" :key="reserva.produto.id" class="col-12 col-md-6">
+                        <div class="card reserved-card fade-in">
+                            <div class="row g-0">
+                                <div class="col-4">
+                                    <img :src="reserva.produto.imagem" :alt="reserva.produto.nome" class="img-fluid">
+                                </div>
+                                <div class="col-8">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ reserva.produto.nome }}</h6>
+                                        <p class="mb-1">
+                                            <i class="bi bi-person-fill"></i>
+                                            <strong>{{ reserva.nomeCliente }}</strong>
+                                        </p>
+                                        <p class="mb-2 small text-muted">
+                                            <i class="bi bi-telephone-fill"></i> {{ reserva.telefone }}
+                                        </p>
+
+                                        <!-- Botão de cancelar -->
+                                        <button @click="confirmarCancelamento(reserva)"
+                                            class="btn btn-cancelar btn-sm w-100">
+                                            <i class="bi bi-x-circle"></i> Cancelar Reserva
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Modal de Reserva -->
+        <div class="modal fade" id="modalReserva" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-gift"></i> Presentear: {{ produtoSelecionado?.nome }}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit.prevent="confirmarReserva">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-person"></i> Nome Completo *
+                                </label>
+                                <input type="text" v-model="formReserva.nome" class="form-control" required
+                                    placeholder="Digite seu nome completo">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-telephone"></i> Telefone (WhatsApp) *
+                                </label>
+                                <input type="tel" v-model="formReserva.telefone" class="form-control" required
+                                    placeholder="(00) 00000-0000" @input="formatarTelefone">
+                                <small class="form-text text-muted">Formato: (00) 00000-0000</small>
+                            </div>
+                            <div class="alert alert-info">
+                                <small>
+                                    <i class="bi bi-info-circle"></i>
+                                    Você poderá cancelar a reserva a qualquer momento.
+                                </small>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-check-circle"></i> Confirmar Presente
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal PIX -->
+        <div class="modal fade" id="modalPix" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-piggy-bank"></i> Contribuição Opcional via PIX
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <p class="text-muted mb-4">
+                            Se você preferir contribuir com um valor em dinheiro,
+                            <strong>aceitamos PIX com qualquer valor que desejar</strong>.
+                            Esta é uma opção totalmente voluntária e sem compromisso! 💝
+                        </p>
+                        <label class="form-label fw-bold">Chave PIX:</label>
+                        <div class="pix-key" @click="copiarPix" title="Clique para copiar">
+                            <i class="bi bi-copy me-2"></i>
+                            <!-- SUBSTITUA AQUI PELA SUA CHAVE PIX -->
+                            seuemail@exemplo.com
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="bi bi-info-circle"></i> Clique para copiar a chave PIX
+                        </small>
+                        <p class="mt-4 mb-0 text-muted small">
+                            <i class="bi bi-heart"></i>
+                            Lembrando: qualquer gesto é muito bem-vindo, mas não se sinta obrigado(a)!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer text-center">
+            <div class="container">
+                <p class="mb-2">
+                    <i class="bi bi-heart-fill"></i>
+                    Obrigado por fazer parte deste momento especial!
+                </p>
+            </div>
+        </footer>
+
+        <!-- Toast Container -->
+        <div class="toast-container position-fixed top-0 end-0 p-3">
+            <div id="toastNotification" class="toast" role="alert">
+                <div class="toast-header" :class="toastClass">
+                    <i :class="toastIcon" class="me-2"></i>
+                    <strong class="me-auto">{{ toastTitulo }}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    {{ toastMensagem }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
+
+    <script>
+        // ========================================
+        // CONFIGURAÇÃO DO FIREBASE
+        // ========================================
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnqBwSYfKgU7cCEfgHP2gZMQfEW3hQHPU",
+            authDomain: "cha-de-casa-nova-1ce22.firebaseapp.com",
+            databaseURL: "https://cha-de-casa-nova-1ce22-default-rtdb.firebaseio.com",
+            projectId: "cha-de-casa-nova-1ce22",
+            storageBucket: "cha-de-casa-nova-1ce22.firebasestorage.app",
+            messagingSenderId: "60035811182",
+            appId: "1:60035811182:web:8658a4ecce30ca686c237f",
+            measurementId: "G-NXLJ9FBKM0"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const reservasRef = database.ref('reservas');
+        console.log('Firebase inicializado com sucesso!');
+        console.log('Database URL:', firebaseConfig.databaseURL);
+
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    // CONFIGURAÇÃO DOS PRODUTOS
+                    todosProdutos: [
+                        {
+                            id: 1,
+                            nome: 'Balde e Pregador',
+                            descricao: 'Conjunto de balde e pregador para uso doméstico',
+                            imagem: 'https://i.ibb.co/Wp751w9G/BALDE-E-PREGADOR.png'
+                        },
+                        {
+                            id: 2,
+                            nome: 'Abridor de Garrafas',
+                            descricao: 'Abridor prático para garrafas',
+                            imagem: 'https://i.ibb.co/rf1FBMcQ/ABRIDOR-DE-LATAS.webp'
+                        },
+                        {
+                            id: 3,
+                            nome: 'Jogo de Talheres',
+                            descricao: 'Conjunto de talheres',
+                            imagem: 'https://i.ibb.co/tGyT0fX/JOGO-DE-TALHERES.webp'
+                        },
+                        {
+                            id: 4,
+                            nome: 'Baleira',
+                            descricao: 'Baleira de vidro para doces e petiscos',
+                            imagem: 'https://i.ibb.co/SXSppTvN/BALEIRA.webp"'
+                        },
+                        {
+                            id: 5,
+                            nome: 'Batedeira',
+                            descricao: 'Batedeira elétrica para facilitar o preparo de receitas',
+                            imagem: 'https://i.ibb.co/mFrHvGnp/BATEDEIRA.jpg'
+                        },
+                        {
+                            id: 6,
+                            nome: 'Cesto de Roupas',
+                            descricao: 'Cesto para roupas sujas',
+                            imagem: 'https://http2.mlstatic.com/D_NQ_NP_2X_705458-MLA95682472410_102025-F.webp'
+                        },
+                        {
+                            id: 7,
+                            nome: 'Caneca Fervedora',
+                            descricao: 'Caneca que ferve água/chá/café',
+                            imagem: 'https://http2.mlstatic.com/D_NQ_NP_2X_984949-MLA95844475905_102025-F.webp'
+                        },
+                        {
+                            id: 8,
+                            nome: 'Cortina',
+                            descricao: 'Cortina para janelas',
+                            imagem: 'https://i.ibb.co/9ksxdHTP/CORTINA.jpg'
+                        },
+                        {
+                            id: 9,
+                            nome: 'Dispenser de Sabão',
+                            descricao: 'Dispenser para sabão líquido',
+                            imagem: 'https://i.ibb.co/TD5hfmCy/DISPENSER-DE-PRODUTO.jpg'
+                        },
+                        {
+                            id: 10,
+                            nome: 'Escorredor de Louças',
+                            descricao: 'Escorredor para pratos e talheres',
+                            imagem: 'https://i.ibb.co/gFRR3WD6/ESCORREDOR-DE-LOU-AS.webp'
+                        },
+                        {
+                            id: 11,
+                            nome: 'Xícaras e Canecas',
+                            descricao: 'Conjunto de xícaras e canecas para café e chá',
+                            imagem: 'https://i.ibb.co/5WyvfckR/X-CARAS-CANECAS.jpg'
+                        },
+                        {
+                            id: 12,
+                            nome: 'Escorredor de Macarrão',
+                            descricao: 'Escorredor prático para massas',
+                            imagem: 'https://i.ibb.co/H3QT5BR/ESCORREDOR-DE-MACARR-O.png'
+                        },
+                        {
+                            id: 13,
+                            nome: 'Forma de Pudim',
+                            descricao: 'Forma para preparar pudins deliciosos',
+                            imagem: 'https://i.ibb.co/Ps5YpLDD/FORMA-DE-PUDIM.webp'
+                        },
+                        {
+                            id: 14,
+                            nome: 'Franelas',
+                            descricao: 'Panos de limpeza multiuso',
+                            imagem: 'https://i.ibb.co/q3HDXKV6/FRANELAS.webp'
+                        },
+                        {
+                            id: 15,
+                            nome: 'Fruteira',
+                            descricao: 'Fruteira decorativa para mesa',
+                            imagem: 'https://i.ibb.co/xSyKQ1vg/FRUTEIRA.webp'
+                        },
+                        {
+                            id: 16,
+                            nome: 'Garrafa de Café',
+                            descricao: 'Garrafa térmica para manter o café quente',
+                            imagem: 'https://i.ibb.co/60ZMzfpx/GARRAFA-DE-CAF.jpg'
+                        },
+                        {
+                            id: 17,
+                            nome: 'Jarras',
+                            descricao: 'Jarras de vidro para servir bebidas',
+                            imagem: 'https://i.ibb.co/GfKSvhjS/JARRAS.jpg'
+                        },
+                        {
+                            id: 18,
+                            nome: 'Jogo de Cama',
+                            descricao: 'Jogo de lençóis confortáveis para casal',
+                            imagem: 'https://i.ibb.co/ymrDjydc/JOGO-DE-CAMA.png'
+                        },
+                        {
+                            id: 19,
+                            nome: 'Jogo de Colher de Cozinha',
+                            descricao: 'Conjunto de colheres para cozinhar',
+                            imagem: 'https://i.ibb.co/1fwhGXzM/JOGO-DE-COLHER-DE-COZINHA.webp'
+                        },
+                        {
+                            id: 20,
+                            nome: 'Jogo de Facas',
+                            descricao: 'Conjunto de facas afiadas para cozinha',
+                            imagem: 'https://i.ibb.co/27xNxhvK/JOGO-DE-FACAS.png'
+                        },
+                        {
+                            id: 21,
+                            nome: 'Kit Vassoura',
+                            descricao: 'Kit completo de vassoura e pá',
+                            imagem: 'https://i.ibb.co/qMzp1Yth/KIT-VASSOURA.webp'
+                        },
+                        {
+                            id: 22,
+                            nome: 'Liquidificador',
+                            descricao: 'Liquidificador potente para vitaminas e receitas',
+                            imagem: 'https://i.ibb.co/fV6qVGyY/LIDIFICADOR.webp'
+                        },
+                        {
+                            id: 23,
+                            nome: 'Lixeiras',
+                            descricao: 'Conjunto de lixeiras para cozinha e banheiro',
+                            imagem: 'https://i.ibb.co/WWJgsx1r/LIXEIRAS.webp'
+                        },
+                        {
+                            id: 24,
+                            nome: 'Mixer',
+                            descricao: 'Mixer elétrico com múltiplas velocidades',
+                            imagem: 'https://i.ibb.co/zTHs6vjX/MISTEIRA.webp'
+                        },
+                        {
+                            id: 25,
+                            nome: 'Mop',
+                            descricao: 'Mop giratório para limpeza de pisos',
+                            imagem: 'https://i.ibb.co/bM76fKVY/MOP.png'
+                        },
+                        {
+                            id: 26,
+                            nome: 'Nicho de Banheiro',
+                            descricao: 'Nicho organizador para shampoo e produtos',
+                            imagem: 'https://i.ibb.co/Nd9Tkqm4/NICHO-DE-BANHEIRO-PARA-COLOCAR-SHAMPO.webp'
+                        },
+                        {
+                            id: 27,
+                            nome: 'Panela de Pressão',
+                            descricao: 'Panela de pressão para cozimento rápido',
+                            imagem: 'https://i.ibb.co/WWFNNRtt/PANELA-DE-PRESS-O.webp'
+                        },
+                        {
+                            id: 28,
+                            nome: 'Panos de Chão',
+                            descricao: 'Panos para limpeza do chão',
+                            imagem: 'https://i.ibb.co/FbjrMHQC/PANOS-DE-CH-O.jpg'
+                        },
+                        {
+                            id: 29,
+                            nome: 'Panos de Prato',
+                            descricao: 'Panos de prato para secar louças',
+                            imagem: 'https://i.ibb.co/wNc3YYQb/PANOS-DE-PRATO.webp'
+                        },
+                        {
+                            id: 30,
+                            nome: 'Peneira',
+                            descricao: 'Peneira para coar alimentos',
+                            imagem: 'https://i.ibb.co/9mM4q3Jz/PENEIRA.png'
+                        },
+                        {
+                            id: 31,
+                            nome: 'Pilão Socador de Alho',
+                            descricao: 'Pilão para socar alho e temperos',
+                            imagem: 'https://i.ibb.co/0Rp2BQbM/PIL-O-SOCADOR-DE-ALHO.jpg'
+                        },
+                        {
+                            id: 32,
+                            nome: 'Pirex',
+                            descricao: 'Conjunto de refratários de vidro',
+                            imagem: 'https://i.ibb.co/chsFr2B8/PIREX.jpg'
+                        },
+                        {
+                            id: 33,
+                            nome: 'Porta Detergente e Bucha',
+                            descricao: 'Organizador para pia de cozinha',
+                            imagem: 'https://i.ibb.co/nTwJzMN/PORTA-DETERGENTE-E-BUCHA.webp'
+                        },
+                        {
+                            id: 34,
+                            nome: 'Porta Sabonete e Escova de Dente',
+                            descricao: 'Kit organizador para banheiro',
+                            imagem: 'https://i.ibb.co/7xybbJhj/PORTA-SABONETE-E-ESCOVA-DE-DENTE.webp'
+                        },
+                        {
+                            id: 35,
+                            nome: 'Porta Temperos',
+                            descricao: 'Suporte organizador para temperos',
+                            imagem: 'https://i.ibb.co/ycKK9yd6/PORTA-TEMPEIRO.jpg'
+                        },
+                        {
+                            id: 36,
+                            nome: 'Potes de Mantimentos',
+                            descricao: 'Potes para armazenar mantimentos',
+                            imagem: 'https://i.ibb.co/dw6YfWWN/POTE-DE-MANTIMENTOS.jpg'
+                        },
+                        {
+                            id: 37,
+                            nome: 'Potes',
+                            descricao: 'Conjunto de potes plásticos para armazenamento',
+                            imagem: 'https://i.ibb.co/DHZNQ8Pq/POTES.webp'
+                        },
+                        {
+                            id: 38,
+                            nome: 'Pratos',
+                            descricao: 'Conjunto de pratos para refeições',
+                            imagem: 'https://i.ibb.co/ch5c5md1/PRATOS.png'
+                        },
+                        {
+                            id: 39,
+                            nome: 'Ralador',
+                            descricao: 'Ralador multifuncional para alimentos',
+                            imagem: 'https://i.ibb.co/rfmvHRpC/RALADOR.webp'
+                        },
+                        {
+                            id: 40,
+                            nome: 'Rodo de Pia',
+                            descricao: 'Rodo para secar pia e balcão',
+                            imagem: 'https://i.ibb.co/1fQPj4sv/RODO-DE-PIA.jpg'
+                        },
+                        {
+                            id: 41,
+                            nome: 'Tábua de Corte',
+                            descricao: 'Tábua de corte para cozinha',
+                            imagem: 'https://http2.mlstatic.com/D_NQ_NP_2X_986269-MLA93090212578_092025-F.webp'
+                        },
+                        {
+                            id: 42,
+                            nome: 'Taças',
+                            descricao: 'Conjunto de taças para bebidas',
+                            imagem: 'https://i.ibb.co/5WXbWShB/TA-AS.webp'
+                        },
+                        {
+                            id: 43,
+                            nome: 'Tapetes',
+                            descricao: 'Tapetes decorativos para casa',
+                            imagem: 'https://i.ibb.co/m5jHp5sd/TAPETES.jpg'
+                        },
+                        {
+                            id: 44,
+                            nome: 'Toalhas de Banho',
+                            descricao: 'Kit de toalhas macias e absorventes',
+                            imagem: 'https://http2.mlstatic.com/D_NQ_NP_2X_844699-MLA96099088219_102025-F.webp'
+                        }
+                    ],
+                    reservas: [],
+                    produtoSelecionado: null,
+                    formReserva: {
+                        nome: '',
+                        telefone: ''
+                    },
+                    // Toast
+                    toastTitulo: '',
+                    toastMensagem: '',
+                    toastClass: '',
+                    toastIcon: '',
+                    // Modal Bootstrap
+                    modalReserva: null,
+                    modalPix: null
+                }
+            },
+            computed: {
+                // Produtos que ainda não foram reservados
+                produtosDisponiveis() {
+                    const idsReservados = this.reservas.map(r => r.produto.id);
+                    return this.todosProdutos.filter(p => !idsReservados.includes(p.id));
+                },
+                // Produtos já reservados
+                produtosReservados() {
+                    return this.reservas;
+                },
+                // Percentual de itens reservados
+                percentualReservado() {
+                    if (this.todosProdutos.length === 0) return 0;
+                    return Math.round((this.reservas.length / this.todosProdutos.length) * 100);
+                }
+            },
+            methods: {
+                // Abre o modal de reserva
+                abrirModal(produto) {
+                    this.produtoSelecionado = produto;
+                    this.formReserva = { nome: '', telefone: '' };
+                    this.modalReserva.show();
+                },
+
+                // Abre o modal PIX
+                abrirModalPix() {
+                    this.modalPix.show();
+                },
+
+                // Formata o telefone enquanto o usuário digita
+                formatarTelefone(event) {
+                    let valor = event.target.value.replace(/\D/g, '');
+
+                    if (valor.length <= 11) {
+                        valor = valor.replace(/^(\d{2})(\d)/g, '($1) $2');
+                        valor = valor.replace(/(\d)(\d{4})$/, '$1-$2');
+                    }
+
+                    this.formReserva.telefone = valor;
+                },
+
+                // Valida o telefone brasileiro
+                validarTelefone(telefone) {
+                    // Remove caracteres não numéricos
+                    const apenasNumeros = telefone.replace(/\D/g, '');
+                    // Valida: deve ter 10 ou 11 dígitos (com DDD)
+                    return apenasNumeros.length === 10 || apenasNumeros.length === 11;
+                },
+
+                // Confirma a reserva do produto
+                confirmarReserva() {
+                    // Validações
+                    if (!this.formReserva.nome.trim()) {
+                        this.mostrarToast('Atenção', 'Por favor, preencha seu nome completo', 'warning');
+                        return;
+                    }
+
+                    if (!this.validarTelefone(this.formReserva.telefone)) {
+                        this.mostrarToast('Telefone Inválido', 'Por favor, insira um telefone válido no formato (00) 00000-0000', 'warning');
+                        return;
+                    }
+
+                    // Cria a reserva
+                    const novaReserva = {
+                        produto: this.produtoSelecionado,
+                        nomeCliente: this.formReserva.nome.trim(),
+                        telefone: this.formReserva.telefone
+                    };
+
+                    this.reservas.push(novaReserva);
+                    this.salvarFirebase();
+
+                    // Fecha o modal
+                    this.modalReserva.hide();
+
+                    // Mostra mensagem de sucesso
+                    this.mostrarToast(
+                        'Presente Reservado! 🎉',
+                        `Obrigado, ${this.formReserva.nome}! Sua reserva foi confirmada com sucesso.`,
+                        'success'
+                    );
+
+                    // Reseta o formulário
+                    this.formReserva = { nome: '', telefone: '' };
+                    this.produtoSelecionado = null;
+                },
+
+                // Confirma antes de cancelar a reserva
+                confirmarCancelamento(reserva) {
+                    if (confirm(`Deseja realmente cancelar a reserva de "${reserva.produto.nome}"?`)) {
+                        this.cancelarReserva(reserva);
+                    }
+                },
+
+                // Cancela a reserva de um produto
+                cancelarReserva(reserva) {
+                    const index = this.reservas.findIndex(r =>
+                        r.produto.id === reserva.produto.id
+                    );
+
+                    if (index !== -1) {
+                        this.reservas.splice(index, 1);
+                        this.salvarFirebase();
+                        this.mostrarToast(
+                            'Reserva Cancelada',
+                            `A reserva de "${reserva.produto.nome}" foi cancelada e o item está disponível novamente.`,
+                            'info'
+                        );
+                    }
+                },
+
+
+
+                // Salva as reservas no Firebase
+                salvarFirebase() {
+                    console.log('Salvando no Firebase:', this.reservas);
+                    // Converte o Proxy do Vue para array simples
+                    const reservasSimples = JSON.parse(JSON.stringify(this.reservas));
+                    console.log('Dados convertidos:', reservasSimples);
+                    reservasRef.set(reservasSimples)
+                        .then(() => {
+                            console.log('Dados salvos com sucesso no Firebase!');
+                        })
+                        .catch(error => {
+                            console.error('Erro ao salvar no Firebase:', error);
+                            this.mostrarToast('Erro', 'Não foi possível salvar a reserva. Verifique sua conexão.', 'warning');
+                        });
+                },
+
+                // Carrega as reservas do Firebase (executado apenas uma vez no mounted)
+                carregarFirebase() {
+                    console.log('Carregando dados do Firebase...');
+                    reservasRef.once('value')
+                        .then(snapshot => {
+                            const dados = snapshot.val();
+                            console.log('Dados carregados do Firebase:', dados);
+                            if (dados && Array.isArray(dados)) {
+                                this.reservas = dados;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro ao carregar dados do Firebase:', error);
+                        });
+                },
+
+                // Escuta mudanças em tempo real no Firebase
+                escutarFirebase() {
+                    console.log('Iniciando escuta de mudanças em tempo real...');
+                    reservasRef.on('value', snapshot => {
+                        const dados = snapshot.val();
+                        console.log('Atualização em tempo real recebida:', dados);
+                        if (dados && Array.isArray(dados)) {
+                            this.reservas = dados;
+                        } else if (dados === null) {
+                            this.reservas = [];
+                        }
+                    });
+                },
+
+                // Mostra um toast de notificação
+                mostrarToast(titulo, mensagem, tipo = 'success') {
+                    this.toastTitulo = titulo;
+                    this.toastMensagem = mensagem;
+
+                    // Define classe e ícone baseado no tipo
+                    switch (tipo) {
+                        case 'success':
+                            this.toastClass = 'bg-success text-white';
+                            this.toastIcon = 'bi bi-check-circle-fill';
+                            break;
+                        case 'warning':
+                            this.toastClass = 'bg-warning';
+                            this.toastIcon = 'bi bi-exclamation-triangle-fill';
+                            break;
+                        case 'info':
+                            this.toastClass = 'bg-info text-white';
+                            this.toastIcon = 'bi bi-info-circle-fill';
+                            break;
+                        default:
+                            this.toastClass = 'bg-primary text-white';
+                            this.toastIcon = 'bi bi-bell-fill';
+                    }
+
+                    const toastEl = document.getElementById('toastNotification');
+                    const toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+                },
+
+                // Copia a chave PIX para a área de transferência
+                copiarPix() {
+                    const chavePix = 'seuemail@exemplo.com'; // SUBSTITUA pela sua chave PIX
+
+                    navigator.clipboard.writeText(chavePix).then(() => {
+                        this.mostrarToast('PIX Copiado! 📋', 'A chave PIX foi copiada para a área de transferência.', 'success');
+                    }).catch(() => {
+                        // Fallback para navegadores mais antigos
+                        const textarea = document.createElement('textarea');
+                        textarea.value = chavePix;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        this.mostrarToast('PIX Copiado! 📋', 'A chave PIX foi copiada para a área de transferência.', 'success');
+                    });
+                }
+            },
+            mounted() {
+                // Carrega dados salvos e inicia sincronização em tempo real
+                this.carregarFirebase();
+                this.escutarFirebase();
+
+                // Inicializa os modals Bootstrap
+                const modalEl = document.getElementById('modalReserva');
+                this.modalReserva = new bootstrap.Modal(modalEl);
+
+                const modalPixEl = document.getElementById('modalPix');
+                this.modalPix = new bootstrap.Modal(modalPixEl);
+
+                // Mensagem de boas-vindas
+                setTimeout(() => {
+                    if (this.produtosDisponiveis.length > 0) {
+                        this.mostrarToast(
+                            'Bem-vindo(a)! 🏠',
+                            'Escolha um presente para nos ajudar a montar nosso lar!',
+                            'info'
+                        );
+                    }
+                }, 1000);
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>
