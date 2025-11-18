@@ -409,9 +409,12 @@
                                             <i class="bi bi-check-circle-fill text-success"></i>
                                             <strong>Já Reservado</strong>
                                         </p>
-                                        <p class="small text-muted">
+                                        <p class="small text-muted mb-3">
                                             <i class="bi bi-info-circle"></i> Este item já foi escolhido por alguém
                                         </p>
+                                        <button @click="abrirModalCancelar(reserva)" class="btn btn-outline-danger btn-sm w-100">
+                                            <i class="bi bi-x-circle"></i> É minha reserva - Cancelar
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -497,6 +500,41 @@
             </div>
         </div>
 
+        <!-- Modal de Cancelamento -->
+        <div class="modal fade" id="modalCancelar" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger">
+                        <h5 class="modal-title text-white">
+                            <i class="bi bi-x-circle"></i> Cancelar Reserva
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>{{ reservaParaCancelar?.produto.nome }}</strong></p>
+                        <p class="text-muted">Para cancelar, confirme o telefone usado na reserva:</p>
+                        <form @submit.prevent="verificarECancelar">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-telephone"></i> Seu Telefone *
+                                </label>
+                                <input type="tel" v-model="telefoneCancelamento" class="form-control" required
+                                    placeholder="(00) 00000-0000" @input="formatarTelefoneCancelamento">
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-check-circle"></i> Confirmar Cancelamento
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    Voltar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <footer class="footer text-center">
             <div class="container">
@@ -547,8 +585,6 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         const reservasRef = database.ref('reservas');
-        console.log('Firebase inicializado com sucesso!');
-        console.log('Database URL:', firebaseConfig.databaseURL);
 
         const { createApp } = Vue;
 
@@ -824,6 +860,8 @@
                     ],
                     reservas: [],
                     produtoSelecionado: null,
+                    reservaParaCancelar: null,
+                    telefoneCancelamento: '',
                     formReserva: {
                         nome: '',
                         telefone: ''
@@ -835,7 +873,8 @@
                     toastIcon: '',
                     // Modal Bootstrap
                     modalReserva: null,
-                    modalPix: null
+                    modalPix: null,
+                    modalCancelar: null
                 }
             },
             computed: {
@@ -925,6 +964,45 @@
                     this.produtoSelecionado = null;
                 },
 
+                // Abre modal para cancelar com verificação de telefone
+                abrirModalCancelar(reserva) {
+                    this.reservaParaCancelar = reserva;
+                    this.telefoneCancelamento = '';
+                    this.modalCancelar.show();
+                },
+
+                // Formata o telefone do cancelamento
+                formatarTelefoneCancelamento(event) {
+                    let valor = event.target.value.replace(/\D/g, '');
+
+                    if (valor.length <= 11) {
+                        valor = valor.replace(/^(\d{2})(\d)/g, '($1) $2');
+                        valor = valor.replace(/(\d)(\d{4})$/, '$1-$2');
+                    }
+
+                    this.telefoneCancelamento = valor;
+                },
+
+                // Verifica o telefone e cancela se correto
+                verificarECancelar() {
+                    // Remove formatação dos telefones para comparar
+                    const telefoneDigitado = this.telefoneCancelamento.replace(/\D/g, '');
+                    const telefoneReserva = this.reservaParaCancelar.telefone.replace(/\D/g, '');
+
+                    if (telefoneDigitado === telefoneReserva) {
+                        // Telefone correto - cancela a reserva
+                        this.cancelarReserva(this.reservaParaCancelar);
+                        this.modalCancelar.hide();
+                    } else {
+                        // Telefone incorreto
+                        this.mostrarToast(
+                            'Telefone Incorreto',
+                            'O telefone digitado não corresponde ao telefone da reserva.',
+                            'warning'
+                        );
+                    }
+                },
+
                 // Confirma antes de cancelar a reserva
                 confirmarCancelamento(reserva) {
                     if (confirm(`Deseja realmente cancelar a reserva de "${reserva.produto.nome}"?`)) {
@@ -953,42 +1031,32 @@
 
                 // Salva as reservas no Firebase
                 salvarFirebase() {
-                    console.log('Salvando no Firebase:', this.reservas);
                     // Converte o Proxy do Vue para array simples
                     const reservasSimples = JSON.parse(JSON.stringify(this.reservas));
-                    console.log('Dados convertidos:', reservasSimples);
                     reservasRef.set(reservasSimples)
-                        .then(() => {
-                            console.log('Dados salvos com sucesso no Firebase!');
-                        })
                         .catch(error => {
-                            console.error('Erro ao salvar no Firebase:', error);
                             this.mostrarToast('Erro', 'Não foi possível salvar a reserva. Verifique sua conexão.', 'warning');
                         });
                 },
 
                 // Carrega as reservas do Firebase (executado apenas uma vez no mounted)
                 carregarFirebase() {
-                    console.log('Carregando dados do Firebase...');
                     reservasRef.once('value')
                         .then(snapshot => {
                             const dados = snapshot.val();
-                            console.log('Dados carregados do Firebase:', dados);
                             if (dados && Array.isArray(dados)) {
                                 this.reservas = dados;
                             }
                         })
                         .catch(error => {
-                            console.error('Erro ao carregar dados do Firebase:', error);
+                            // Erro silencioso
                         });
                 },
 
                 // Escuta mudanças em tempo real no Firebase
                 escutarFirebase() {
-                    console.log('Iniciando escuta de mudanças em tempo real...');
                     reservasRef.on('value', snapshot => {
                         const dados = snapshot.val();
-                        console.log('Atualização em tempo real recebida:', dados);
                         if (dados && Array.isArray(dados)) {
                             this.reservas = dados;
                         } else if (dados === null) {
@@ -1055,6 +1123,9 @@
 
                 const modalPixEl = document.getElementById('modalPix');
                 this.modalPix = new bootstrap.Modal(modalPixEl);
+
+                const modalCancelarEl = document.getElementById('modalCancelar');
+                this.modalCancelar = new bootstrap.Modal(modalCancelarEl);
 
                 // Mensagem de boas-vindas
                 setTimeout(() => {
